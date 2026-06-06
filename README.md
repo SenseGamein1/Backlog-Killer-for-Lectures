@@ -25,10 +25,16 @@ I built this program to solve the anxiety of falling behind. Instead of staring 
 Absolutely none. If you have a web browser (Chrome, Edge, Safari, Firefox), you can run this app.
 
 ### Installation & Usage
-1. Download or clone this repository.
-2. Double-click the `BacklogKiller20.html` file to open it in your browser.
-3. **Generalizing the App**: By default, it is populated with Physics, Math, and Chemistry[cite: 1]. You can use the UI to **Drop** these subjects and add your own via the Advanced Settings menu (e.g., "Web Development", "Marketing", "Language Learning")[cite: 1].
-4. Bookmark the page for daily use!
+[🌐 Launch App in Browser Here](https://SenseGamein1.github.io/Backlog-Killer-for-Lectures/BacklogKiller.html)
+Bookmark the page for daily use!
+
+[📥 Download & Install Here](https://github.com/SenseGamein1/Backlog-Killer-for-Lectures/archive/refs/heads/main.zip)
+**Instructions:**
+1. Click the link above to download the `.zip` file to your PC.
+2. Extract the folder.
+3. Double-click `BacklogKiller.html` to run the app directly in your browser!
+
+**Generalizing the App**: By default, it is populated with Physics, Math, and Chemistry[cite: 1]. You can use the UI to **Drop** these subjects and add your own via the Advanced Settings menu (e.g., "Web Development", "Marketing", "Language Learning")[cite: 1].
 
 ### Setting up Cloud Sync (Optional)
 To use this on both your phone and laptop:
