@@ -25,7 +25,7 @@ I built this program to solve the anxiety of falling behind. Instead of staring 
 Absolutely none. If you have a web browser (Chrome, Edge, Safari, Firefox), you can run this app.
 
 ### Installation & Usage
-[🌐 Launch App in Browser Here](https://SenseGamein1.github.io/Backlog-Killer-for-Lectures/BacklogKiller.html)
+[🌐 Launch App in Browser Here](https://sensegamein1.github.io/Backlog-Killer-for-Lectures/BacklogKiller.html)
 Bookmark the page for daily use!
 
 [📥 Download & Install Here](https://github.com/SenseGamein1/Backlog-Killer-for-Lectures/archive/refs/heads/main.zip)
