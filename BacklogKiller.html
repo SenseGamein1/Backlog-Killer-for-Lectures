@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backlog Killer ⚔️</title>
+    <style>
+        :root {
+            --bg: #09090b; --surface: #121217; --primary: #bb86fc;
+            --text: #e2e2e9; --danger: #ff5555; --success: #2ecc71; --accent: #00d2ff;
+            --warning: #f1c40f;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg); color: var(--text); max-width: 1100px; margin: 0 auto; padding: 20px; }
+        h1, h2, h3, h4 { color: var(--primary); margin-top: 0; font-weight: 600; letter-spacing: 0.5px; }
+        h2 { font-size: 1.35em; margin-bottom: 15px; }
+        h3 { font-size: 1.15em; }
+        h4 { font-size: 1em; }
+        
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f1f2e; padding-bottom: 15px; margin-bottom: 25px; }
+        .top-bar h1 { border: none; margin: 0; padding: 0; font-size: 2em; text-shadow: 0 0 10px rgba(187, 134, 252, 0.2); }
+        
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media(max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+        .card { background: var(--surface); padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 8px 25px rgba(0,0,0,0.6); border: 1px solid #1f1f2e; transition: all 0.3s ease; }
+        .card:hover { border-color: #2d2d44; }
+        
+        .progress-container { background: #1a1a24; border-radius: 10px; height: 24px; width: 100%; margin: 12px 0; overflow: hidden; border: 1px solid #2d2d44; box-shadow: inset 0 2px 5px rgba(0,0,0,0.5); }
+        .progress-bar { background: linear-gradient(90deg, var(--primary), var(--accent), var(--success)); height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+        
+        .pace-dropdown { background: #1a1a26; color: var(--accent); border: 1px solid #2d2d44; padding: 8px; border-radius: 6px; font-weight: bold; outline: none; cursor: pointer; width: 100%; font-size: 0.95em; transition: 0.2s; }
+        .pace-dropdown:hover { border-color: var(--accent); }
+
+        .quick-subject-card { background: linear-gradient(145deg, #12121c 0%, #171724 100%); padding: 18px; border-radius: 12px; border-left: 4px solid var(--accent); margin-bottom: 12px; border: 1px solid #1f1f2e; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .quick-subject-card:hover { border-color: var(--accent); box-shadow: 0 6px 20px rgba(0,210,255,0.15); transform: translateY(-2px); }
+        .quick-subject-title { font-weight: 700; font-size: 1.2em; color: #fff; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; letter-spacing: 0.5px; }
+        
+        .multi-subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; margin-bottom: 15px; }
+        .chapter-selector { width: 100%; background: #0f0f16; color: var(--accent); border: 1px solid #2d2d44; padding: 10px; border-radius: 6px; font-size: 0.95em; cursor: pointer; margin-bottom: 15px; font-weight: 600; transition: all 0.2s; }
+        .chapter-selector:hover { border-color: var(--accent); background: #14141e; }
+        .chapter-selector:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 10px rgba(187, 134, 252, 0.2); }
+        
+        /* Premium Data Segment Dividers */
+        .data-segment-container { display: flex; background: #09090c; border-radius: 8px; border: 1px solid #222235; overflow: hidden; margin-bottom: 12px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
+        .data-segment { flex: 1; padding: 12px 8px; text-align: center; border-right: 2px solid #1f1f2e; display: flex; flex-direction: column; justify-content: center; }
+        .data-segment:last-child { border-right: none; }
+        .segment-title { font-weight: 800; font-size: 0.85em; color: #fff; letter-spacing: 1.5px; margin-bottom: 10px; text-transform: uppercase; }
+        
+        .stepper-row { display: flex; align-items: center; justify-content: space-between; background: #12121c; padding: 6px; border-radius: 6px; font-family: monospace; border: 1px solid #222235; transition: border-color 0.3s; }
+        .fraction-display { font-weight: bold; font-size: 1.1em; letter-spacing: 0.5px; text-align: center; flex: 1; }
+        .stepper-btn { color: white; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 1.2em; font-weight: bold; display: inline-flex; align-items: center; justify-content: center; transition: 0.15s ease; }
+        .stepper-btn.decrease { background: #1a2e22; border: 1px solid rgba(46, 204, 113, 0.5); color: var(--success); }
+        .stepper-btn.decrease:hover { background: var(--success); color: black; transform: scale(1.05); }
+        .stepper-btn.increase { background: #2e1a1a; border: 1px solid rgba(255, 85, 85, 0.5); color: var(--danger); }
+        .stepper-btn.increase:hover { background: var(--danger); color: white; transform: scale(1.05); }
+
+        .threat-clean { border-color: rgba(46, 204, 113, 0.4); box-shadow: 0 0 8px rgba(46,204,113,0.1); }
+        .threat-warn { border-color: rgba(241, 196, 15, 0.4); box-shadow: 0 0 8px rgba(241,196,15,0.1); }
+        .threat-critical { border-color: rgba(255, 85, 85, 0.4); box-shadow: 0 0 8px rgba(255,85,85,0.1); }
+
+        .advanced-settings-header { display: flex; justify-content: space-between; align-items: center; background: #121217; padding: 15px; border-radius: 8px; cursor: pointer; border: 1px dashed #2d2d44; margin-bottom: 15px; transition: 0.2s; }
+        .advanced-settings-header:hover { border-color: var(--primary); background: #171724; }
+
+        .subject-block { margin-bottom: 25px; background: linear-gradient(90deg, #121217 0%, #171724 100%); padding: 18px; border-radius: 10px; border-left: 4px solid #3d3d5c; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-top: 1px solid #1f1f2e; border-right: 1px solid #1f1f2e; border-bottom: 1px solid #1f1f2e; }
+        .subject-block:hover { border-left-color: var(--primary); }
+        .subject-header { font-weight: 700; font-size: 1.2em; margin-bottom: 15px; color: #fff; letter-spacing: 0.5px; }
+        
+        .chapter-row { display: flex; justify-content: space-between; align-items: stretch; background: #0c0c12; padding: 15px; margin: 10px 0; border-radius: 10px; flex-wrap: wrap; gap: 15px; border: 1px solid #1f1f2e; transition: all 0.3s; }
+        .chapter-row:hover { border-color: #3d4d6c; background: #101018; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        .chapter-actions { display: flex; flex-direction: row; gap: 8px; justify-content: center; flex: 1; align-items: center; }
+        
+        .daily-task { background: linear-gradient(90deg, #14141e 0%, #1a1a26 100%); padding: 15px; border-radius: 10px; margin-bottom: 12px; border-right: 4px solid #3a3a52; transition: all 0.3s; border: 1px solid #1f1f2e; }
+        .daily-task:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translateX(2px); }
+        .daily-task.completed { border-right: 4px solid var(--success); background: linear-gradient(90deg, #0d1a12 0%, #122418 100%); border-color: rgba(46,204,113,0.3); }
+        
+        .btn { background: var(--primary); color: #000; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 700; transition: all 0.2s ease; display: inline-flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0.5px; }
+        .btn:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 6px 15px rgba(187, 134, 252, 0.25); }
+        .btn-small { padding: 6px 12px; font-size: 0.8em; border-radius: 6px; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { box-shadow: 0 6px 15px rgba(255, 85, 85, 0.25); }
+        .btn-success { background: var(--success); color: black; }
+        .btn-success:hover { box-shadow: 0 6px 15px rgba(46, 204, 113, 0.25); }
+        .btn-history { background: #1a1a26; color: white; border: 1px solid #2d2d44; font-size: 0.9em; cursor: not-allowed; opacity: 0.5; }
+        .btn-history.active-eng { cursor: pointer; opacity: 1; background: #222235; border-color: var(--primary); }
+        .btn-history.active-eng:hover { background: var(--primary); color: black; }
+        
+        textarea, input[type="number"], input[type="text"], input[type="password"] { background: #0c0c12; color: #fff; border: 1px solid #2d2d44; padding: 12px; border-radius: 6px; outline: none; transition: all 0.2s; font-size: 0.95em; width: 100%; box-sizing: border-box; }
+        textarea:focus, input:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(187, 134, 252, 0.15); background: #121217; }
+        textarea { resize: vertical; font-family: 'Segoe UI', system-ui, sans-serif; }
+        
+        .countdown { font-family: monospace; font-size: 1.4em; color: var(--accent); font-weight: bold; text-shadow: 0 0 10px rgba(0, 210, 255, 0.2); }
+        .hidden { display: none !important; }
+        
+        .log-entry { background: #121217; padding: 12px; margin-top: 10px; border-radius: 8px; font-size: 0.9em; border-left: 3px solid var(--accent); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; border: 1px solid #1f1f2e; }
+        .log-entry:hover { background: #171724; padding-left: 15px; border-color: #2d2d44; }
+        
+        .archive-toggle { background: #121217; color: #888; padding: 15px; border-radius: 8px; cursor: pointer; text-align: center; font-weight: 700; margin-top: 20px; border: 1px dashed #2d2d44; transition: all 0.3s; letter-spacing: 0.5px; }
+        .archive-toggle:hover { color: var(--success); background: #121c16; border-color: var(--success); box-shadow: 0 4px 15px rgba(46, 204, 113, 0.15); }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1>Backlog Killer ⚔️</h1>
+        <div style="display: flex; gap: 10px;">
+            <button id="undo-engine-btn" class="btn btn-history" onclick="triggerUndo()">↩️ Undo</button>
+            <button id="redo-engine-btn" class="btn btn-history" onclick="triggerRedo()">↪️ Redo</button>
+        </div>
+    </div>
+
+    <div class="card" style="text-align: center; border-color: var(--primary); box-shadow: 0 0 20px rgba(187, 134, 252, 0.1);">
+        <h2>📊 Global Diagnostics Matrix</h2>
+        <div class="progress-container"><div id="overall-progress-bar" class="progress-bar"></div></div>
+        <p style="margin: 5px 0; font-size: 1.1em;">Syllabus Clearance: <span id="completion-pct" style="font-weight:900; color:var(--success); font-size: 1.2em;">0%</span></p>
+        
+        <div class="grid" style="margin-top:20px; background: #0c0c12; padding: 20px; border-radius: 10px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: left; border: 1px solid #1f1f2e;">
+            <div>
+                <p style="margin:2px; color:#888; font-size: 0.85em; font-weight: 800; text-transform: uppercase;">Total Active Backlog</p>
+                <p id="total-backlog-count" style="color:var(--danger); font-size:1.4em; font-weight:bold; margin:8px 0;"></p>
+                <p style="margin:2px; color:#686888; font-size: 0.9em; font-weight: 600;">Req. Study Time: <span id="time-left-countdown" style="color:var(--accent); font-family:monospace; font-weight: bold; font-size: 1.1em;">00h</span></p>
+            </div>
+            <div style="border-left: 2px solid #1f1f2e; padding-left: 20px;">
+                <p style="margin:2px; color:#888; font-size: 0.85em; font-weight: 800; text-transform: uppercase;">Target Output Pace</p>
+                <select id="pace-selector" class="pace-dropdown" style="margin: 10px 0;" onchange="renderDashboard()">
+                    <option value="14">14 Hours / Week (Steady)</option>
+                    <option value="21" selected>21 Hours / Week (Balanced)</option>
+                    <option value="28">28 Hours / Week (Aggressive)</option>
+                    <option value="35">35 Hours / Week (Intense)</option>
+                </select>
+                <p style="margin:2px; color:#686888; font-size: 0.9em; font-weight: 600;">Duration: <span id="weeks-display" style="color:var(--text); font-weight:bold;">0 Weeks</span></p>
+            </div>
+            <div style="border-left: 2px solid #1f1f2e; padding-left: 20px;">
+                <p style="margin:2px; color:#888; font-size: 0.85em; font-weight: 800; text-transform: uppercase;">Clearance Target Date</p>
+                <div id="clearance-date-display" class="countdown" style="color:var(--success); font-size:1.5em; margin:15px 0;">Calculating...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div>
+            <div class="card" style="border: 1px solid var(--accent); box-shadow: 0 0 20px rgba(0, 210, 255, 0.05);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin:0; color:var(--accent);">⚡ Quick Subjects Hub</h3>
+                    <button class="btn btn-small btn-success" onclick="createNewChapterInline()">+ Fast Node</button>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; background: #0c0c12; padding: 12px; border-radius: 8px; align-items: center; border: 1px dashed #2d2d44; flex-wrap: wrap;">
+                    <button class="btn btn-small" style="flex:0 1 auto;" onclick="runDailyAutoPresetV2()">⚡ Auto +1 All Subjects</button>
+                    <span style="font-size:0.85em; color:#888; font-weight:bold; margin-left: auto;">Amount:</span>
+                    <input type="number" id="daily-preset-val" value="1" style="width: 60px; height: 32px; padding: 4px; text-align: center; border-radius: 6px;">
+                </div>
+
+                <div id="quick-subject-panel-content" class="multi-subject-grid"></div>
+            </div>
+
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>📅 Today's Live Queue</h3>
+                    <button class="btn btn-small" onclick="forceAddDailyPrompt()">+ Extra Tracker</button>
+                </div>
+                <div id="daily-tasks-container"></div>
+                
+                <h4 style="margin-bottom:8px; margin-top:25px;">📝 Day Performance Notes</h4>
+                <textarea id="daily-thought-input" rows="2" placeholder="Log benchmarks, test marks or schedule gaps..."></textarea>
+                <button class="btn btn-small btn-success" style="margin-top:10px; width:100%;" onclick="saveDailyLog()">Commit Log Entry</button>
+            </div>
+
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>📜 Historical Log Array</h3>
+                    <button class="btn btn-small btn-danger" onclick="clearAllLogs()" style="padding:4px 8px; font-size:0.75em;">Clear Logs</button>
+                </div>
+                <div id="logs-container" style="max-height: 200px; overflow-y: auto; margin-top:15px; padding-right: 5px;"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card" style="border: 1px dashed #3d3d5c;">
+                <div class="advanced-settings-header" onclick="toggleAdvancedSettings()">
+                    <h3 style="margin:0; color:#aaa;">⚙️ Chapter Architecture (Advanced)</h3>
+                    <span id="adv-toggle-icon" style="font-size: 1.2em; color: var(--primary);">▼</span>
+                </div>
+                
+                <div id="advanced-architecture-container">
+                    <div id="chapterwise-container"></div>
+                    
+                    <div class="archive-toggle" onclick="toggleArchiveDisplay()">📁 Toggle Completed Chapters Archive (<span id="archive-count">0</span>)</div>
+                    <div id="completed-chapters-container" class="hidden" style="margin-top:15px;"></div>
+                </div>
+            </div>
+
+            <div class="card" style="background: #0f0f16; border-color: var(--accent);">
+                <h3 style="color:var(--accent); margin-bottom:5px;">☁️ Cloud Sync Engine</h3>
+                <p style="font-size: 0.85em; color: #888; margin-top: 0; margin-bottom: 15px;">Sync your progress across all devices using <a href="https://jsonbin.io" target="_blank" style="color:var(--accent);">JSONBin.io</a> (Free).</p>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.75em; color: #aaa; font-weight: bold; text-transform: uppercase;">Bin ID</label>
+                        <input type="text" id="cloud-bin-id" placeholder="e.g. 665b1234...">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.75em; color: #aaa; font-weight: bold; text-transform: uppercase;">Master API Key</label>
+                        <input type="password" id="cloud-api-key" placeholder="e.g. $2a$10$...">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="btn btn-small" style="flex:1; background:var(--accent); color:#000;" onclick="pushToCloud()">☁️ Push (Save) to Cloud</button>
+                    <button class="btn btn-small btn-success" style="flex:1;" onclick="pullFromCloud()">📥 Pull (Load) from Cloud</button>
+                </div>
+            </div>
+
+            <div class="card" style="background: #12121a; border-color: #2d2d44;">
+                <h4 style="color:#aaa; margin-bottom:10px;">💾 Local Data String Backup</h4>
+                <textarea id="system-backup-io" rows="2" style="font-family:monospace; font-size:0.8em; background: #09090c;" placeholder="Configuration export chunks render here..."></textarea>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="btn btn-small" style="flex:1; background:#2d2d44; color:#fff;" onclick="exportStateMatrix()">Export String</button>
+                    <button class="btn btn-small" style="flex:1; background:#2d2d44; color:#fff;" onclick="importStateMatrix()">Import String</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const initialSeedData = {
+            lastUpdatedDate: new Date().toDateString(),
+            subjects: {
+                "Physics": { active: true, chapters: [
+                    { chNum: "01", name: "Mathematical Tools", totalLec: 7, doneLec: 7, totalDpp: 3, doneDpp: 3, totalHw: 7, doneHw: 7 },
+                    { chNum: "02", name: "Error in Measurements", totalLec: 4, doneLec: 4, totalDpp: 2, doneDpp: 2, totalHw: 4, doneHw: 4 }
+                ]},
+                "Maths": { active: true, chapters: [
+                    { chNum: "01", name: "Basic Mathematics", totalLec: 16, doneLec: 16, totalDpp: 8, doneDpp: 6, totalHw: 16, doneHw: 16 }
+                ]},
+                "Chemistry": { active: true, chapters: [
+                    { chNum: "01", name: "Mole Concept", totalLec: 13, doneLec: 13, totalDpp: 9, doneDpp: 9, totalHw: 13, doneHw: 13 }
+                ]}
+            },
+            dailyTasks: [], logs: []
+        };
+
+        // Bumped to V10 for clean cache, falling back to V9/V8
+        let appData = JSON.parse(localStorage.getItem('backlogKillerV10')) || JSON.parse(localStorage.getItem('backlogKillerV9')) || JSON.parse(localStorage.getItem('backlogKillerV8')) || initialSeedData;
+        
+        // V10 MIGRATION: Ensure all HW is instantiated perfectly
+        for (let s in appData.subjects) {
+            if (appData.subjects[s].chapters) {
+                appData.subjects[s].chapters.forEach(ch => {
+                    if (ch.totalHw === undefined) {
+                        ch.totalHw = ch.totalLec; 
+                        ch.doneHw = ch.doneLec;
+                    }
+                });
+            }
+        }
+        
+        let showArchive = false;
+        let isAdvancedOpen = true; 
+        let activeQuickTab = Object.keys(appData.subjects)[0] || "Physics"; 
+        let undoStack = [], redoStack = [];
+
+        // Load Cloud Credentials on Startup
+        window.onload = () => {
+            if(localStorage.getItem('bk_cloud_api')) document.getElementById('cloud-api-key').value = localStorage.getItem('bk_cloud_api');
+            if(localStorage.getItem('bk_cloud_bin')) document.getElementById('cloud-bin-id').value = localStorage.getItem('bk_cloud_bin');
+        }
+
+        function processDataChange(mutationTask, dynamicActionLogText) {
+            undoStack.push(JSON.stringify(appData));
+            redoStack = []; 
+            mutationTask(); 
+            if (dynamicActionLogText) {
+                const timestamp = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                appData.logs.unshift({ date: timestamp, text: dynamicActionLogText });
+            }
+            commitAndRender();
+        }
+
+        function triggerUndo() {
+            if (undoStack.length === 0) return;
+            redoStack.push(JSON.stringify(appData));
+            appData = JSON.parse(undoStack.pop());
+            commitAndRender();
+        }
+
+        function triggerRedo() {
+            if (redoStack.length === 0) return;
+            undoStack.push(JSON.stringify(appData));
+            appData = JSON.parse(redoStack.pop());
+            commitAndRender();
+        }
+
+        function commitAndRender() {
+            localStorage.setItem('backlogKillerV10', JSON.stringify(appData));
+            renderDashboard();
+            updateHistoryEngineButtons();
+        }
+
+        function updateHistoryEngineButtons() {
+            const uBtn = document.getElementById('undo-engine-btn');
+            const rBtn = document.getElementById('redo-engine-btn');
+            uBtn.classList.toggle('active-eng', undoStack.length > 0); uBtn.disabled = undoStack.length === 0;
+            rBtn.classList.toggle('active-eng', redoStack.length > 0); rBtn.disabled = redoStack.length === 0;
+        }
+
+        function incrementPendingBacklog(subName, chIdx, type) {
+            let ch = appData.subjects[subName].chapters[chIdx];
+            processDataChange(() => {
+                if (type === 'lec') { 
+                    ch.totalLec++; 
+                    ch.totalHw++; // HW Auto Sync Rule: +1 Lec = +1 HW
+                }
+                if (type === 'dpp') ch.totalDpp++;
+                if (type === 'hw') ch.totalHw++;
+            }, `Added Pending ${type.toUpperCase()}: ${subName} - ${ch.name}`);
+        }
+
+        function decrementPendingBacklog(subName, chIdx, type) {
+            let ch = appData.subjects[subName].chapters[chIdx];
+            let pending = type === 'lec' ? (ch.totalLec - ch.doneLec) : type === 'dpp' ? (ch.totalDpp - ch.doneDpp) : (ch.totalHw - ch.doneHw);
+            if (pending <= 0) return; 
+            processDataChange(() => {
+                if (type === 'lec') ch.doneLec++;
+                if (type === 'dpp') ch.doneDpp++;
+                if (type === 'hw') ch.doneHw++;
+            }, `Cleared ${type.toUpperCase()}: ${subName} - ${ch.name}`);
+        }
+
+        function getThreatClass(pendingCount) {
+            if (pendingCount === 0) return 'threat-clean';
+            if (pendingCount <= 2) return 'threat-warn';
+            return 'threat-critical';
+        }
+
+        function runDailyAutoPresetV2() {
+            let val = parseInt(document.getElementById('daily-preset-val').value) || 1;
+            if(!confirm(`Auto-add +${val} lecture(s) & HW(s) to EACH active subject's latest chapter?`)) return;
+            
+            processDataChange(() => {
+                let subCount = 0;
+                for(let s in appData.subjects) {
+                    let sub = appData.subjects[s];
+                    if(!sub.active || !sub.chapters || sub.chapters.length === 0) continue;
+                    let lastCh = sub.chapters[sub.chapters.length - 1];
+                    lastCh.totalLec += val;
+                    lastCh.totalHw += val; // HW Auto Sync Rule
+                    subCount++;
+                }
+                if(subCount === 0) throw new Error("No active subjects found");
+            }, `Auto-Sync: +${val} Lec & HW to latest chapters.`);
+        }
+
+        function switchQuickChapter(subName, chapterIdx) {
+            localStorage.setItem(`quickHub_${subName}_chapter`, chapterIdx);
+        }
+
+        function toggleAdvancedSettings() {
+            isAdvancedOpen = !isAdvancedOpen;
+            document.getElementById('advanced-architecture-container').classList.toggle('hidden', !isAdvancedOpen);
+            document.getElementById('adv-toggle-icon').innerText = isAdvancedOpen ? '▼' : '▶';
+        }
+
+        function maxOutChapter(subName, chIndex) {
+            let ch = appData.subjects[subName].chapters[chIndex];
+            processDataChange(() => {
+                ch.doneLec = ch.totalLec; ch.doneDpp = ch.totalDpp; ch.doneHw = ch.totalHw;
+            }, `⚡ Maxed Out: ${subName} - ${ch.name}`);
+        }
+
+        function inlineEditChapterData(subName, chIndex) {
+            let ch = appData.subjects[subName].chapters[chIndex];
+            let chNum = prompt("Modify Chapter Number (e.g. 05):", ch.chNum || String(chIndex + 1).padStart(2, '0')); if (chNum === null) return;
+            let name = prompt("Modify Chapter Name:", ch.name); if (name === null) return;
+            
+            let tL = prompt("Total Released Lectures:", ch.totalLec); if (tL === null) return;
+            let dL = prompt("Done/Watched Lectures:", ch.doneLec); if (dL === null) return;
+            
+            let tD = prompt("Total Released DPPs:", ch.totalDpp); if (tD === null) return;
+            let dD = prompt("Done/Solved DPPs:", ch.doneDpp); if (dD === null) return;
+            
+            // NO HW PROMPTS - Auto Syncing applied here
+            let parsedTL = Math.max(0, parseInt(tL) || 0);
+
+            processDataChange(() => {
+                ch.chNum = chNum.trim() || ch.chNum;
+                ch.name = name.trim() || ch.name;
+                ch.totalLec = parsedTL; ch.doneLec = Math.max(0, parseInt(dL) || 0);
+                ch.totalDpp = Math.max(0, parseInt(tD) || 0); ch.doneDpp = Math.max(0, parseInt(dD) || 0);
+                
+                // Auto sync HW based on Lec
+                ch.totalHw = parsedTL; 
+                if (ch.doneHw > parsedTL) ch.doneHw = parsedTL; // Cap doneHw if total shrunk
+                
+                if (ch.doneLec > ch.totalLec) ch.totalLec = ch.doneLec;
+                if (ch.doneDpp > ch.totalDpp) ch.totalDpp = ch.doneDpp;
+            }, `Edited: ${subName} - CH-${ch.chNum}`);
+        }
+
+        function inlineDeleteChapterRow(subName, chIndex) {
+            let ch = appData.subjects[subName].chapters[chIndex];
+            if (confirm(`⚠️ Permanently delete "${ch.name}"?`)) {
+                processDataChange(() => { appData.subjects[subName].chapters.splice(chIndex, 1); }, `Deleted: ${subName} - ${ch.name}`);
+            }
+        }
+
+        function createNewChapterInline() {
+            let subOptions = Object.keys(appData.subjects).filter(s => appData.subjects[s].active).join(", ");
+            let subSelect = prompt(`Choose subject:\n(${subOptions})`, activeQuickTab);
+            if (!subSelect || !appData.subjects[subSelect]) return alert("Invalid subject.");
+            
+            let chNum = prompt("Enter Chapter Number (e.g. 05):", String(appData.subjects[subSelect].chapters.length + 1).padStart(2, '0'));
+            if (chNum === null) return;
+            
+            let name = prompt("Enter Chapter Name:"); if (!name) return;
+            
+            processDataChange(() => {
+                // HW initializes at 0, syncs automatically when Lec is incremented
+                appData.subjects[subSelect].chapters.push({ chNum: chNum.trim(), name: name.trim(), totalLec: 0, doneLec: 0, totalDpp: 0, doneDpp: 0, totalHw: 0, doneHw: 0 });
+            }, `Added Fast Node: ${subSelect} - CH-${chNum}`);
+        }
+
+        function addChapterFromAdvanced(subName) {
+            let chNum = prompt("Enter Chapter Number (e.g. 04):", String(appData.subjects[subName].chapters.length + 1).padStart(2, '0'));
+            if (chNum === null) return;
+            
+            let name = prompt(`Enter NEW chapter name for ${subName}:`);
+            if (!name) return;
+            
+            let tL = parseInt(prompt("Enter TOTAL Lectures released so far:", "0")) || 0;
+            let dL = parseInt(prompt("Enter Lectures DONE/WATCHED:", "0")) || 0;
+            let tD = parseInt(prompt("Enter TOTAL DPPs released so far:", "0")) || 0;
+            let dD = parseInt(prompt("Enter DPPs DONE/SOLVED:", "0")) || 0;
+            
+            // NO HW PROMPTS - Auto Sync System
+            let tH = tL; // HW given perfectly matches Lectures taken
+            let dH = 0;  // Assume HW is backlogged initially
+
+            processDataChange(() => {
+                appData.subjects[subName].chapters.push({
+                    chNum: chNum.trim(),
+                    name: name.trim(),
+                    totalLec: Math.max(0, tL), doneLec: Math.max(0, dL),
+                    totalDpp: Math.max(0, tD), doneDpp: Math.max(0, dD),
+                    totalHw: Math.max(0, tH), doneHw: Math.max(0, dH)
+                });
+            }, `Added Chapter: ${subName} - CH-${chNum}`);
+        }
+
+        // --- Cloud Sync API Methods ---
+        async function pushToCloud() {
+            const apiKey = document.getElementById('cloud-api-key').value.trim();
+            const binId = document.getElementById('cloud-bin-id').value.trim();
+            if(!apiKey || !binId) return alert("Please enter both Bin ID and API Key.");
+            
+            localStorage.setItem('bk_cloud_api', apiKey); localStorage.setItem('bk_cloud_bin', binId);
+            const btn = event.target; btn.innerText = "⏳ Pushing...";
+            
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'X-Master-Key': apiKey },
+                    body: JSON.stringify(appData)
+                });
+                if(res.ok) { alert("✅ Matrix State Successfully Synced to Cloud!"); } 
+                else { alert("❌ Failed to push. Check your credentials."); }
+            } catch(e) { alert("🌐 Network Error. Check your connection."); }
+            btn.innerText = "☁️ Push (Save) to Cloud";
+        }
+
+        async function pullFromCloud() {
+            const apiKey = document.getElementById('cloud-api-key').value.trim();
+            const binId = document.getElementById('cloud-bin-id').value.trim();
+            if(!apiKey || !binId) return alert("Please enter both Bin ID and API Key.");
+            
+            localStorage.setItem('bk_cloud_api', apiKey); localStorage.setItem('bk_cloud_bin', binId);
+            const btn = event.target; btn.innerText = "⏳ Pulling...";
+            
+            try {
+                let res = await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`, {
+                    headers: { 'X-Master-Key': apiKey }
+                });
+                if(res.ok) {
+                    let data = await res.json();
+                    if(data.record && data.record.subjects) {
+                        processDataChange(() => { appData = data.record; }, "📥 Pulled state from Cloud.");
+                        alert("✅ Cloud Data Successfully Loaded!");
+                    } else { alert("❌ Format mismatch in cloud data."); }
+                } else { alert("❌ Failed to pull. Check your credentials."); }
+            } catch(e) { alert("🌐 Network Error. Check your connection."); }
+            btn.innerText = "📥 Pull (Load) from Cloud";
+        }
+
+        function clearAllLogs() { if(confirm("Wipe logs history entries?")) processDataChange(() => { appData.logs = []; }, "Clear Logs."); }
+        function saveDailyLog() { const el = document.getElementById('daily-thought-input'); if(!el.value.trim()) return; processDataChange(() => { appData.logs.unshift({ date: new Date().toLocaleDateString(), text: `📝 Note: ${el.value.trim()}` }); }, null); el.value = ''; }
+        function toggleArchiveDisplay() { showArchive = !showArchive; document.getElementById('completed-chapters-container').classList.toggle('hidden', !showArchive); }
+        function exportStateMatrix() { document.getElementById('system-backup-io').value = btoa(JSON.stringify(appData)); }
+        function importStateMatrix() {
+            try { let verifiedData = JSON.parse(atob(document.getElementById('system-backup-io').value.trim()));
+                if(verifiedData.subjects) { processDataChange(() => { appData = verifiedData; }, "Import Complete."); alert("System Metrics Loaded."); }
+            } catch(err) { alert("Parsing Structure Exception Encountered."); }
+        }
+
+        function forceAddDailyPrompt() {
+            let phrase = prompt("Subject Name (e.g. Physics):", ""); if (!phrase || !phrase.trim()) return;
+            let chapterName = prompt("Chapter/Topic Name:", ""); if (!chapterName || !chapterName.trim()) return;
+            processDataChange(() => { appData.dailyTasks.unshift({ id: Date.now(), subject: phrase.trim(), chapter: chapterName.trim(), lec: false, dpp: false, hw: false }); }, `Added Tracker: ${phrase.trim()}`);
+        }
+        function toggleTaskField(taskId, field) { processDataChange(() => { const task = appData.dailyTasks.find(t => t.id === taskId); if (task) task[field] = !task[field]; }, null); }
+        function cancelDailyTask(taskId) { if (confirm("Drop daily checklist tracking node?")) processDataChange(() => { appData.dailyTasks = appData.dailyTasks.filter(t => t.id !== taskId); }, null); }
+
+        // --- DASHBOARD UI GENERATION MOTOR ENGINE ---
+        function renderDashboard() {
+            let totalItemsCount=0, doneItemsCount=0, backlogLecCount=0, backlogDppCount=0, backlogHwCount=0, archiveCount=0;
+            let hwTimeSum = 0, dailyTaskHwTimeSum = 0;
+            
+            let chContainer = document.getElementById('chapterwise-container');
+            let archiveContainer = document.getElementById('completed-chapters-container');
+            let quickHub = document.getElementById('quick-subject-panel-content');
+            
+            chContainer.innerHTML = ''; archiveContainer.innerHTML = ''; quickHub.innerHTML = '';
+
+            let activeSubjects = Object.keys(appData.subjects).filter(s => appData.subjects[s].active);
+            let quickHubHTML = '';
+            
+            activeSubjects.forEach(subName => {
+                let sub = appData.subjects[subName];
+                if (!sub.chapters || sub.chapters.length === 0) return;
+                
+                let selectedChIdx = localStorage.getItem(`quickHub_${subName}_chapter`) ? parseInt(localStorage.getItem(`quickHub_${subName}_chapter`)) : sub.chapters.length - 1;
+                if (selectedChIdx >= sub.chapters.length || selectedChIdx < 0) {
+                    selectedChIdx = sub.chapters.length - 1;
+                    for (let i = sub.chapters.length - 1; i >= 0; i--) {
+                        let targetCh = sub.chapters[i];
+                        if ((targetCh.totalLec - targetCh.doneLec) > 0 || (targetCh.totalDpp - targetCh.doneDpp) > 0 || (targetCh.totalHw - targetCh.doneHw) > 0) {
+                            selectedChIdx = i; break;
+                        }
+                    }
+                }
+                
+                let ch = sub.chapters[selectedChIdx];
+                let lecPending = ch.totalLec - ch.doneLec;
+                let dppPending = ch.totalDpp - ch.doneDpp;
+                let hwPending = ch.totalHw - ch.doneHw;
+                let displayNum = ch.chNum || String(selectedChIdx + 1).padStart(2, '0');
+                
+                let chDropdown = '<select class="chapter-selector" onchange="switchQuickChapter(\'' + subName + '\', this.value); renderDashboard();">';
+                sub.chapters.forEach((c, idx) => {
+                    let cNum = c.chNum || String(idx + 1).padStart(2, '0');
+                    let cPending = (c.totalLec - c.doneLec) + (c.totalDpp - c.doneDpp) + (c.totalHw - c.doneHw);
+                    let indicator = cPending > 0 ? `⚠️` : `✅`;
+                    chDropdown += `<option value="${idx}" ${idx === selectedChIdx ? 'selected' : ''}>${indicator} CH-${cNum}: ${c.name.substring(0, 20)}${c.name.length > 20 ? '...' : ''}</option>`;
+                });
+                chDropdown += '</select>';
+                
+                // PREMIUM DIVIDER UI FOR QUICK HUB
+                quickHubHTML += `
+                    <div class="quick-subject-card" style="border-left-color: ${subName === 'Physics' ? '#ff5555' : subName === 'Maths' ? '#00d2ff' : '#bb86fc'};">
+                        <div class="quick-subject-title">
+                            <span>${subName}</span> 
+                            <span style="color:var(--primary); font-size:0.85em; background:#1f1f2e; padding:4px 10px; border-radius:6px; box-shadow:inset 0 2px 5px rgba(0,0,0,0.5);">CH-${displayNum}</span>
+                        </div>
+                        <div class="chapter-dropdown-wrapper">
+                            ${chDropdown}
+                        </div>
+                        
+                        <div class="data-segment-container">
+                            <div class="data-segment ${getThreatClass(lecPending)}">
+                                <div class="segment-title">LEC</div>
+                                <div class="stepper-row">
+                                    <button class="stepper-btn decrease" onclick="decrementPendingBacklog('${subName}', ${selectedChIdx}, 'lec')">-</button>
+                                    <span class="fraction-display">${lecPending}<span style="font-size:0.6em; color:#777; display:block;">(${ch.doneLec}/${ch.totalLec})</span></span>
+                                    <button class="stepper-btn increase" onclick="incrementPendingBacklog('${subName}', ${selectedChIdx}, 'lec')">+</button>
+                                </div>
+                            </div>
+                            <div class="data-segment ${getThreatClass(dppPending)}">
+                                <div class="segment-title">DPP</div>
+                                <div class="stepper-row">
+                                    <button class="stepper-btn decrease" onclick="decrementPendingBacklog('${subName}', ${selectedChIdx}, 'dpp')">-</button>
+                                    <span class="fraction-display">${dppPending}<span style="font-size:0.6em; color:#777; display:block;">(${ch.doneDpp}/${ch.totalDpp})</span></span>
+                                    <button class="stepper-btn increase" onclick="incrementPendingBacklog('${subName}', ${selectedChIdx}, 'dpp')">+</button>
+                                </div>
+                            </div>
+                            <div class="data-segment ${getThreatClass(hwPending)}">
+                                <div class="segment-title">HW</div>
+                                <div class="stepper-row">
+                                    <button class="stepper-btn decrease" onclick="decrementPendingBacklog('${subName}', ${selectedChIdx}, 'hw')">-</button>
+                                    <span class="fraction-display">${hwPending}<span style="font-size:0.6em; color:#777; display:block;">(${ch.doneHw}/${ch.totalHw})</span></span>
+                                    <button class="stepper-btn increase" onclick="incrementPendingBacklog('${subName}', ${selectedChIdx}, 'hw')">+</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top: 15px;">
+                            <button class="btn btn-small" style="background:#2d2d44; color:white; flex:1;" onclick="inlineEditChapterData('${subName}', ${selectedChIdx})">✏️ Edit</button>
+                            <button class="btn btn-small btn-success" style="flex:1;" onclick="maxOutChapter('${subName}', ${selectedChIdx})">⚡ Max Out</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (quickHubHTML === '') { quickHub.innerHTML = `<div class="quick-subject-card" style="text-align:center; color:#666; padding:20px 10px;">No Active Subjects or Chapters Configured</div>`; } 
+            else { quickHub.innerHTML = quickHubHTML; }
+
+            for (let subName in appData.subjects) {
+                let sub = appData.subjects[subName];
+                if (!sub.active) continue;
+                
+                let activeSubHtml = `
+                    <div class="subject-block">
+                        <div class="subject-header" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>${subName}</span>
+                            <button class="btn btn-small btn-success" style="font-size: 0.85em;" onclick="addChapterFromAdvanced('${subName}')">+ Add Chapter</button>
+                        </div>`;
+                
+                let archiveSubHtml = `<div class="subject-block" style="border-left-color: var(--success); background: #0b1410;"><div class="subject-header"><span style="color:var(--success);">✅ ${subName} (Archived/Clean)</span></div>`;
+                let holdsActiveBacklog = false, holdsCompleted = false;
+
+                sub.chapters.forEach((ch, idx) => {
+                    totalItemsCount += (ch.totalLec + ch.totalDpp + ch.totalHw); 
+                    doneItemsCount += (ch.doneLec + ch.doneDpp + ch.doneHw);
+                    
+                    let lB = ch.totalLec - ch.doneLec; if(lB > 0) backlogLecCount += lB;
+                    let dB = ch.totalDpp - ch.doneDpp; if(dB > 0) backlogDppCount += dB;
+                    let hB = ch.totalHw - ch.doneHw; 
+                    if(hB > 0) { 
+                        backlogHwCount += hB;
+                        let hwMultiplier = (subName === 'Physics') ? 0.5 : 1.0;
+                        hwTimeSum += (hB * hwMultiplier);
+                    }
+
+                    let displayNum = ch.chNum || String(idx + 1).padStart(2, '0');
+
+                    // PREMIUM DIVIDER UI FOR ADVANCED ROWS
+                    let rowHtml = `
+                        <div class="chapter-row">
+                            <div style="flex:1; min-width: 380px;">
+                                <div style="margin-bottom: 12px; font-size: 1.1em;">
+                                    <strong style="color:#fff;">CH-${displayNum}: ${ch.name}</strong>
+                                </div>
+                                
+                                <div class="data-segment-container" style="margin-bottom:0;">
+                                    <div class="data-segment">
+                                        <div class="segment-title">LEC</div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 10px;">
+                                            <button class="stepper-btn decrease" onclick="decrementPendingBacklog('${subName}', ${idx}, 'lec')">-</button>
+                                            <span style="font-family:monospace; font-weight:bold; font-size: 1.1em; color: ${lB > 0 ? 'var(--danger)' : 'var(--success)'};">${lB} <span style="font-size:0.6em; color:#777; display:block;">(${ch.doneLec}/${ch.totalLec})</span></span>
+                                            <button class="stepper-btn increase" onclick="incrementPendingBacklog('${subName}', ${idx}, 'lec')">+</button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="data-segment">
+                                        <div class="segment-title">DPP</div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 10px;">
+                                            <button class="stepper-btn decrease" onclick="decrementPendingBacklog('${subName}', ${idx}, 'dpp')">-</button>
+                                            <span style="font-family:monospace; font-weight:bold; font-size: 1.1em; color: ${dB > 0 ? 'var(--accent)' : 'var(--success)'};">${dB} <span style="font-size:0.6em; color:#777; display:block;">(${ch.doneDpp}/${ch.totalDpp})</span></span>
+                                            <button class="stepper-btn increase" onclick="incrementPendingBacklog('${subName}', ${idx}, 'dpp')">+</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="data-segment">
+                                        <div class="segment-title">HW</div>
+                                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 10px;">
+                                            <button class="stepper-btn decrease" onclick="decrementPendingBacklog('${subName}', ${idx}, 'hw')">-</button>
+                                            <span style="font-family:monospace; font-weight:bold; font-size: 1.1em; color: ${hB > 0 ? 'var(--warning)' : 'var(--success)'};">${hB} <span style="font-size:0.6em; color:#777; display:block;">(${ch.doneHw}/${ch.totalHw})</span></span>
+                                            <button class="stepper-btn increase" onclick="incrementPendingBacklog('${subName}', ${idx}, 'hw')">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                            <div class="chapter-actions">
+                                <button class="btn btn-small" style="background:#2d2d44; color:white;" onclick="inlineEditChapterData('${subName}', ${idx})">✏️ Edit</button>
+                                <button class="btn btn-small btn-success" onclick="maxOutChapter('${subName}', ${idx})">⚡ Max</button>
+                                <button class="btn btn-small btn-danger" onclick="inlineDeleteChapterRow('${subName}', ${idx})">🗑️ Drop</button>
+                            </div>
+                        </div>
+                    `;
+
+                    let isCleanAndPopulated = (ch.totalLec > 0 || ch.totalDpp > 0 || ch.totalHw > 0) && (lB === 0 && dB === 0 && hB === 0);
+
+                    if (!isCleanAndPopulated) { 
+                        activeSubHtml += rowHtml; 
+                        holdsActiveBacklog = true; 
+                    } else { 
+                        archiveSubHtml += rowHtml; 
+                        holdsCompleted = true; 
+                        archiveCount++; 
+                    }
+                });
+                
+                activeSubHtml += `</div>`; archiveSubHtml += `</div>`;
+                if (holdsActiveBacklog || sub.chapters.length === 0) chContainer.innerHTML += activeSubHtml;
+                if (holdsCompleted) archiveContainer.innerHTML += archiveSubHtml;
+            }
+
+            document.getElementById('archive-count').innerText = archiveCount;
+            let pct = totalItemsCount > 0 ? Math.round((doneItemsCount / totalItemsCount) * 100) : 0;
+            document.getElementById('completion-pct').innerText = pct + "%";
+            document.getElementById('overall-progress-bar').style.width = pct + "%";
+
+            let dailyTaskLecBacklog = 0, dailyTaskDppBacklog = 0, dailyTaskHwBacklog = 0;
+            appData.dailyTasks.forEach(task => {
+                if (!task.lec) dailyTaskLecBacklog++;
+                if (!task.dpp) dailyTaskDppBacklog++;
+                if (!task.hw) {
+                    dailyTaskHwBacklog++;
+                    let tSub = task.subject.toLowerCase();
+                    dailyTaskHwTimeSum += (tSub.includes('phys') && !tSub.includes('chem')) ? 0.5 : 1.0; 
+                }
+            });
+            backlogLecCount += dailyTaskLecBacklog; backlogDppCount += dailyTaskDppBacklog; backlogHwCount += dailyTaskHwBacklog;
+
+            document.getElementById('total-backlog-count').innerHTML = `${backlogLecCount} <span style="font-size:0.6em; color:#888;">Lecs</span> &nbsp;|&nbsp; ${backlogDppCount} <span style="font-size:0.6em; color:#888;">DPPs</span> &nbsp;|&nbsp; <span style="color:var(--warning);">${backlogHwCount}</span> <span style="font-size:0.6em; color:#888;">HWs</span>`;
+            
+            let totalStudyHours = (backlogLecCount * 2.0) + (backlogDppCount * 1.0) + hwTimeSum + dailyTaskHwTimeSum;
+            document.getElementById('time-left-countdown').innerText = `${totalStudyHours}h 00m`;
+
+            let paceHrsPerWeek = parseInt(document.getElementById('pace-selector').value) || 21;
+            
+            if(totalStudyHours > 0) {
+                let weeksRequired = (totalStudyHours / paceHrsPerWeek);
+                document.getElementById('weeks-display').innerText = `${weeksRequired.toFixed(1)} Weeks`;
+                let targetDate = new Date(); targetDate.setDate(targetDate.getDate() + Math.ceil(weeksRequired * 7));
+                document.getElementById('clearance-date-display').innerText = targetDate.toLocaleDateString(undefined, {month:'short', day:'numeric', year: 'numeric'});
+            } else { 
+                document.getElementById('weeks-display').innerText = "0 Weeks";
+                document.getElementById('clearance-date-display').innerText = "All Clean!"; 
+            }
+
+            let logDiv = document.getElementById('logs-container'); logDiv.innerHTML = '';
+            if(appData.logs.length === 0) logDiv.innerHTML = `<div style='text-align:center; color:#555; padding-top:20px;'>No telemetry strings saved.</div>`;
+            else appData.logs.forEach(l => { logDiv.innerHTML += `<div class="log-entry"><span>${l.text}</span><span style="color:#686888; font-family:monospace; font-size:0.9em;">${l.date}</span></div>`; });
+            
+            let dailyDiv = document.getElementById('daily-tasks-container'); dailyDiv.innerHTML = '';
+            appData.dailyTasks.slice(0,6).forEach(t => {
+                let complete = t.lec && t.dpp && t.hw; 
+                dailyDiv.innerHTML += `
+                    <div class="daily-task ${complete ? 'completed' : ''}">
+                        <div style="display:flex; justify-content:space-between; font-size:0.9em; margin-bottom:10px;">
+                            <span><b style="color:var(--primary);">${t.subject}</b> - ${t.chapter}</span>
+                            <button class="btn btn-small btn-danger" style="padding: 2px 8px; font-size:0.8em;" onclick="cancelDailyTask(${t.id})">Drop</button>
+                        </div>
+                        <div style="display:flex; gap:15px; font-weight: bold; color: #aaa;">
+                            <label style="cursor:pointer;"><input type="checkbox" style="width:auto; margin-right:5px;" ${t.lec?'checked':''} onchange="toggleTaskField(${t.id},'lec')"> Watch</label>
+                            <label style="cursor:pointer;"><input type="checkbox" style="width:auto; margin-right:5px;" ${t.dpp?'checked':''} onchange="toggleTaskField(${t.id},'dpp')"> DPP</label>
+                            <label style="cursor:pointer;"><input type="checkbox" style="width:auto; margin-right:5px;" ${t.hw?'checked':''} onchange="toggleTaskField(${t.id},'hw')"> HW</label>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        document.getElementById('advanced-architecture-container').classList.toggle('hidden', !isAdvancedOpen);
+        commitAndRender();
+    </script>
+</body>
+</html>
