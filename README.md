@@ -49,9 +49,9 @@ This entire project is cleverly contained within a single HTML file. You don't n
 
 To add new features or change the styling:
 1. Open ChatGPT, Claude, or Gemini.
-2. Paste the entire `BacklogKiller20.html` code into the chat.
+2. Paste the entire `BacklogKiller.html` code into the chat.
 3. Give a prompt like: *"I want to change the theme from Purple to Neon Green. Update the CSS for me."* OR *"Add a new tracker next to HW called 'Mock Tests'."*
-4. Copy the newly generated code, paste it back into your file, and save.
+4. Copy the newly generated code, paste it back into your file(could be firstly txt which you can change into html after pasting), and save.
 
 ## 📄 License
 This project is open-source and available under the MIT License.
